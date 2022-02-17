@@ -12,7 +12,8 @@ const HeaderButton: FC<HeaderButtonProps> = ({ icon: Icon, ...rest }) => {
       borderRadius="full"
       bg="grayscale.border"
       color="grayscale.grayLight"
-      _hover={{ bg: 'grayscale.border' }}
+      transition="0.2s ease"
+      _hover={{ bg: 'grayscale.border', filter: 'brightness(0.9)' }}
       _active={{ bg: 'grayscale.border' }}
       {...rest}
     >

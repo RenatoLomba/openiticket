@@ -17,6 +17,16 @@ const colors = {
   accent: {
     default: '#3751FF',
     light: '#DDE2FF',
+    bg: 'rgba(55, 81, 255, 0.04)',
+  },
+  red: {
+    default: '#F12B2C',
+  },
+  green: {
+    default: '#29CC97',
+  },
+  yellow: {
+    default: '#FEC400',
   },
 };
 

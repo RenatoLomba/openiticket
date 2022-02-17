@@ -78,7 +78,7 @@ const AuthProvider: FC = ({ children }) => {
   useEffect(() => {
     getSessionUser();
 
-    supabaseClient.auth.onAuthStateChange((event, session) => {
+    const { data } = supabaseClient.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN') {
         getSessionUser(session);
         router.push('/tickets');
@@ -89,6 +89,10 @@ const AuthProvider: FC = ({ children }) => {
         router.push('/');
       }
     });
+
+    return () => {
+      data?.unsubscribe();
+    };
   }, []);
 
   return (

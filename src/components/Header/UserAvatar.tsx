@@ -11,7 +11,7 @@ export const UserAvatar: FC<UserAvatarProps> = ({ name, url }) => {
   const { signOut } = useAuth();
 
   return (
-    <Menu>
+    <Menu isLazy>
       <MenuButton
         p="1"
         bg="grayscale.extraLight"

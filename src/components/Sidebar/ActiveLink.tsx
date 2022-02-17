@@ -18,7 +18,9 @@ const ActiveLink: FC<ActiveLinkProps> = ({ href, icon: Icon, text }) => {
   return (
     <NextLink href={href} passHref>
       <Link
-        _hover={{ textDecor: 'none' }}
+        _hover={{
+          textDecor: isActive ? 'none' : 'underline',
+        }}
         bg={isActive ? 'sidebar.light' : ''}
         borderLeft={isActive ? '3px solid' : ''}
         borderColor="accent.light"

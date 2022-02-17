@@ -1,7 +1,8 @@
 import { FC } from 'react';
 import { FaSearch, FaBell } from 'react-icons/fa';
-import { Box, BoxProps, Flex, Heading, HStack, Text } from '@chakra-ui/react';
+import { Box, BoxProps, Flex, Heading, HStack } from '@chakra-ui/react';
 
+import { Strong } from '../Text/Strong';
 import { UserAvatar } from './UserAvatar';
 import { HeaderButton } from './HeaderButton';
 import { HeaderDivider } from './HeaderDivider';
@@ -31,9 +32,7 @@ const Header: FC<HeaderProps> = ({ title, ...rest }) => {
           <HeaderDivider />
 
           <HStack spacing={4}>
-            <Text fontWeight="semibold" fontSize="md">
-              {user?.full_name}
-            </Text>
+            <Strong>{user?.full_name}</Strong>
 
             <UserAvatar url={user?.avatar_url} name={user?.full_name} />
           </HStack>

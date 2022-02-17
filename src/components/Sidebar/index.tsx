@@ -1,14 +1,20 @@
 import { FC } from 'react';
 
 import { Box, BoxProps, Flex, Heading } from '@chakra-ui/react';
-import { FaTicketAlt, FaChartPie, FaStar, FaCog } from 'react-icons/fa';
+import {
+  FaTicketAlt,
+  FaStickyNote,
+  FaChartPie,
+  FaStar,
+  FaCog,
+} from 'react-icons/fa';
 
-import { ActiveLink } from '../ActiveLink';
+import { ActiveLink } from './ActiveLink';
 import { SidebarDivider } from './SidebarDivider';
 
 export const Sidebar: FC<BoxProps> = ({ ...rest }) => {
   return (
-    <Box bg="sidebar.bg" {...rest}>
+    <Box bg="sidebar.bg" {...rest} as="aside">
       <Heading
         as="h3"
         size="md"
@@ -22,6 +28,11 @@ export const Sidebar: FC<BoxProps> = ({ ...rest }) => {
       <Flex flexDir="column" mt="24">
         <ActiveLink href="/dashboard" text="Dashboard" icon={FaChartPie} />
         <ActiveLink href="/tickets" text="Tickets" icon={FaTicketAlt} />
+        <ActiveLink
+          href="/tickets/create"
+          text="Cadastrar"
+          icon={FaStickyNote}
+        />
         <ActiveLink href="/rating" text="Avalie" icon={FaStar} />
 
         <SidebarDivider my="4" />
