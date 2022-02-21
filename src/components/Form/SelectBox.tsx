@@ -3,10 +3,11 @@ import { forwardRef, ForwardRefRenderFunction } from 'react';
 import {
   FormControl,
   FormErrorMessage,
-  FormLabel,
   Select,
   SelectProps,
 } from '@chakra-ui/react';
+
+import { Label } from './Label';
 
 interface SelectBoxOption {
   text: string | number;
@@ -26,16 +27,7 @@ const SelectBoxBase: ForwardRefRenderFunction<
 > = ({ options, error, name, label, ...rest }, ref) => {
   return (
     <FormControl isInvalid={!!error}>
-      {!!label && (
-        <FormLabel
-          htmlFor={name}
-          fontWeight="bold"
-          fontSize="xs"
-          color="grayscale.gray"
-        >
-          {label?.toUpperCase()}
-        </FormLabel>
-      )}
+      {!!label && <Label label={label} name={name} />}
 
       <Select
         id={name}

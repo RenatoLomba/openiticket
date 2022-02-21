@@ -2,11 +2,12 @@ import { forwardRef, ForwardRefRenderFunction } from 'react';
 import {
   FormControl,
   FormErrorMessage,
-  FormLabel,
   Textarea as ChakraTextarea,
   TextareaProps as ChakraTextareaProps,
 } from '@chakra-ui/react';
 import { FieldError } from 'react-hook-form';
+
+import { Label } from './Label';
 
 interface TextareaProps extends ChakraTextareaProps {
   name: string;
@@ -20,16 +21,7 @@ const TextareaBase: ForwardRefRenderFunction<
 > = ({ name, label, error, ...rest }, ref) => {
   return (
     <FormControl isInvalid={!!error}>
-      {!!label && (
-        <FormLabel
-          htmlFor={name}
-          fontWeight="bold"
-          fontSize="xs"
-          color="grayscale.gray"
-        >
-          {label?.toUpperCase()}
-        </FormLabel>
-      )}
+      {!!label && <Label label={label} name={name} />}
 
       <ChakraTextarea
         id={name}

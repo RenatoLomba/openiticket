@@ -1,30 +1,41 @@
-import { FC } from 'react';
+import { forwardRef, ForwardRefRenderFunction } from 'react';
 import {
   Button as ChakraButton,
   ButtonProps as ChakraButtonProps,
 } from '@chakra-ui/react';
 
-type ButtonProps = ChakraButtonProps;
+import { Sizes, useSizeValue } from '../hooks/useSizeValue';
 
-const Button: FC<ButtonProps> = ({ children, ...rest }) => {
+interface ButtonProps extends ChakraButtonProps {
+  size?: Sizes;
+}
+
+const ButtonBase: ForwardRefRenderFunction<HTMLButtonElement, ButtonProps> = (
+  { children, size = 'md', bg = 'accent.default', isFullWidth = true, ...rest },
+  ref,
+) => {
+  const paddingValue = useSizeValue({ lg: '8', md: '6', sm: '4' }, size);
+
+  const fontSizeValue = useSizeValue({ lg: 'lg', md: 'md', sm: 'sm' }, size);
+
   return (
     <ChakraButton
-      w="100%"
+      ref={ref}
+      isFullWidth={isFullWidth}
       justifyContent="center"
       alignItems="center"
-      bg="accent.default"
+      bg={bg}
       color="white"
-      p="6"
+      p={paddingValue}
       fontWeight="semibold"
-      fontSize="sm"
-      transition="filter 0.2s"
+      fontSize={fontSizeValue}
+      transition="all 0.2s"
       _hover={{
-        bg: 'accent.default',
+        bg,
         filter: 'brightness(0.9)',
       }}
       _active={{
-        bg: 'accent.default',
-        filter: 'brightness(1.1)',
+        bg,
       }}
       {...rest}
     >
@@ -32,5 +43,7 @@ const Button: FC<ButtonProps> = ({ children, ...rest }) => {
     </ChakraButton>
   );
 };
+
+const Button = forwardRef(ButtonBase);
 
 export { Button };
