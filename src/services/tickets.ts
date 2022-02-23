@@ -1,29 +1,6 @@
-import { sessionService } from './session';
 import { supabaseClient } from '../libs/supabase';
 import { ResponseError } from '../helpers/errors';
-
-interface AttachmentDTO {
-  bucket: string;
-  path: string;
-  publicURL: string;
-}
-
-interface CreateTicketDTO {
-  title: string;
-  description: string;
-  priority: string;
-  attachments: AttachmentDTO[];
-}
-
-interface TicketResponseDTO {
-  id: string;
-  title: string;
-  description: string;
-  priority: string;
-  attachments: string;
-  created_at: string;
-  updated_at: string;
-}
+import { CreateTicketDTO, Ticket, TicketResponse } from './types/tickets.types';
 
 export const ticketsService = {
   async createTicket({
@@ -32,47 +9,99 @@ export const ticketsService = {
     priority,
     title,
   }: CreateTicketDTO) {
-    let data: TicketResponseDTO[] | null = null;
-    let error: ResponseError | null = null;
+    const session = supabaseClient.auth.session();
 
-    try {
-      const { error: sessionError, session } = sessionService.verifyUser();
-
-      if (sessionError || !session || !session.user) {
-        throw new ResponseError(
-          sessionError?.code,
-          sessionError?.title,
-          sessionError?.description,
-        );
-      }
-
-      const { id: user_id } = session.user;
-
-      const { data: insertData, error: insertError } = await supabaseClient
-        .from('tickets')
-        .insert([
-          {
-            title,
-            description,
-            priority,
-            attachments: JSON.stringify(attachments),
-            user_id,
-          },
-        ]);
-
-      if (insertError) {
-        throw new ResponseError(
-          insertError.code,
-          `Error ${insertError.code}`,
-          insertError.message,
-        );
-      }
-
-      data = insertData;
-    } catch (ex) {
-      error = ex as ResponseError;
+    if (!session || !session.user) {
+      throw new ResponseError({ title: 'Usuário não autenticado' });
     }
 
-    return { data, error };
+    const {
+      id: user_id,
+      user_metadata,
+      created_at: user_created_at,
+    } = session.user;
+
+    const { data, error } = await supabaseClient
+      .from<Ticket>('tickets')
+      .insert([
+        {
+          title,
+          description,
+          priority,
+          user_id,
+          attachments: JSON.stringify(attachments),
+          user: {
+            id: user_id,
+            full_name: user_metadata.full_name,
+            avatar_url: user_metadata.avatar_url,
+            created_at: user_created_at,
+          },
+        },
+      ]);
+
+    if (error || !data) {
+      throw new ResponseError({
+        title: error?.message,
+        description: error?.details,
+      });
+    }
+
+    return data[0];
+  },
+
+  async getTickets(page: number, size: number) {
+    const from = (page - 1) * size;
+    const to = from + (size - 1);
+
+    const { data, error } = await supabaseClient
+      .from<Ticket>('tickets')
+      .select(
+        `
+          id,
+          title, 
+          created_at, 
+          updated_at, 
+          priority,
+          user
+        `,
+      )
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (error || !data) {
+      throw new ResponseError({
+        title: error?.message,
+        description: error?.details,
+      });
+    }
+
+    const tickets: TicketResponse[] = data.map((ticket) => {
+      const createdAtDate = new Date(ticket.created_at);
+      const updatedAtDate = new Date(ticket.updated_at);
+
+      const difference = new Date().getTime() - updatedAtDate.getTime();
+
+      const days = Math.ceil(difference / (1000 * 3600 * 24));
+
+      return {
+        ...ticket,
+        updated_at: `Atualizado a ${days} dias atrás`,
+        created_at_date: createdAtDate.toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+        }),
+        created_at_hour: createdAtDate.toLocaleTimeString('pt-BR', {
+          hour: 'numeric',
+          minute: '2-digit',
+        }),
+        user: {
+          ...ticket.user,
+          created_at: new Date(ticket.user.created_at).toLocaleDateString(),
+        },
+      };
+    });
+
+    return tickets;
   },
 };

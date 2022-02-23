@@ -1,26 +1,23 @@
-import { Session } from '@supabase/supabase-js';
-import { ResponseError } from '../helpers/errors';
 import { supabaseClient } from '../libs/supabase';
+import { ResponseError } from '../helpers/errors';
+import { serviceHandler } from '../helpers/serviceHandler';
 
 export const sessionService = {
-  verifyUser() {
-    let session: Session | null = null;
-    let error: ResponseError | null = null;
-
-    try {
-      session = supabaseClient.auth.session();
+  async verifyUser() {
+    const { data, error } = await serviceHandler(async () => {
+      const session = supabaseClient.auth.session();
 
       if (!session || !session.user) {
-        throw new ResponseError(
-          400,
-          'Usuário não autenticado',
-          'Verifique se você está conectado corretamente e tente novamente',
-        );
+        throw new ResponseError({
+          title: 'Usuário não autenticado',
+          description:
+            'Verifique se você está conectado corretamente e tente novamente',
+        });
       }
-    } catch (ex) {
-      error = ex as ResponseError;
-    }
 
-    return { session, error };
+      return session;
+    });
+
+    return { data, error };
   },
 };

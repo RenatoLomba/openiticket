@@ -1,6 +1,8 @@
+import { sessionService } from './session';
 import { ResponseError } from '../helpers/errors';
 import { supabaseClient } from '../libs/supabase';
-import { sessionService } from './session';
+import { serviceHandler } from '../helpers/serviceHandler';
+import { fileIsImage } from '../helpers/validators/fileIsImage';
 
 interface UploadImageDTO {
   bucket: string;
@@ -19,30 +21,19 @@ interface DeleteImagesDTO {
 
 export const storageService = {
   async uploadImage({ bucket, imageFile }: UploadImageDTO) {
-    let data: { Key: string; path: string } | null = null;
-    let error: ResponseError | null = null;
-
-    try {
-      const { error: sessionError, session } = sessionService.verifyUser();
+    const { data, error } = await serviceHandler(async () => {
+      const { error: sessionError, data: session } =
+        await sessionService.verifyUser();
 
       if (sessionError || !session || !session.user) {
-        throw new ResponseError(
-          sessionError?.code,
-          sessionError?.title,
-          sessionError?.description,
-        );
+        throw new ResponseError({ ...sessionError });
       }
 
-      if (
-        imageFile.type !== 'image/jpeg' &&
-        imageFile.type !== 'image/png' &&
-        imageFile.type !== 'image/gif'
-      ) {
-        throw new ResponseError(
-          400,
-          `Erro de extensão`,
-          'Extensões de arquivos suportadas: PNG e JPEG',
-        );
+      if (!fileIsImage(imageFile)) {
+        throw new ResponseError({
+          title: `Erro de extensão`,
+          description: 'Extensões de arquivos suportadas: PNG, JPEG e GIF',
+        });
       }
 
       const { user } = session;
@@ -56,13 +47,11 @@ export const storageService = {
         });
 
       if (uploadError || !uploadData) {
-        throw new ResponseError(500, uploadError?.name, uploadError?.message);
+        throw new ResponseError({ code: 500, ...uploadError });
       }
 
-      data = { ...uploadData, path };
-    } catch (ex) {
-      error = ex as ResponseError;
-    }
+      return { ...uploadData, path };
+    });
 
     return { data, error };
   },
@@ -74,21 +63,16 @@ export const storageService = {
     return publicURL;
   },
   async deleteImages({ bucket, pathsToDelete }: DeleteImagesDTO) {
-    let data: unknown | null = null;
-    let error: ResponseError | null = null;
-
-    try {
+    const { data, error } = await serviceHandler(async () => {
       const { data: deleteData, error: deleteError } =
         await supabaseClient.storage.from(bucket).remove(pathsToDelete);
 
       if (deleteError) {
-        throw new ResponseError(500, deleteError.name, deleteError.message);
+        throw new ResponseError({ code: 500, ...deleteError });
       }
 
-      data = deleteData;
-    } catch (ex) {
-      error = ex as ResponseError;
-    }
+      return deleteData;
+    });
 
     return { data, error };
   },

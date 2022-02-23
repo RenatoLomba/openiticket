@@ -11,6 +11,7 @@ import {
 
 import { Button } from '../Button';
 import { AlertDialog } from '../AlertDialog';
+import { AttachmentModal } from './AttachmentModal';
 
 interface Attachment {
   path: string;
@@ -27,10 +28,21 @@ export const Attachments: FC<AttachmentsProps> = ({
   attachments,
   handleDeleteAttachment,
 }) => {
-  const { isOpen, onClose, onOpen } = useDisclosure();
+  const {
+    isOpen: dialogIsOpen,
+    onClose: dialogOnClose,
+    onOpen: dialogOnOpen,
+  } = useDisclosure();
+  const {
+    isOpen: modalIsOpen,
+    onClose: modalOnClose,
+    onOpen: modalOnOpen,
+  } = useDisclosure();
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [attachmentToDelete, setAttachmentToDelete] = useState<Attachment>();
+  const [attachmentToVisualize, setAttachmentToVisualize] =
+    useState<Attachment>();
 
   const hasAttachments = attachments.length > 0;
 
@@ -40,6 +52,12 @@ export const Attachments: FC<AttachmentsProps> = ({
     await handleDeleteAttachment?.(attachmentToDelete as Attachment);
 
     setIsDeleting(false);
+  };
+
+  const handleAttachmentClick = (at: Attachment) => {
+    setAttachmentToVisualize(at);
+
+    modalOnOpen();
   };
 
   return (
@@ -67,7 +85,11 @@ export const Attachments: FC<AttachmentsProps> = ({
               w="100%"
               position="relative"
             >
-              <Image src={at.publicURL} />
+              <Image
+                src={at.publicURL}
+                cursor="pointer"
+                onClick={() => handleAttachmentClick(at)}
+              />
 
               <Button
                 bg="red.default"
@@ -79,7 +101,7 @@ export const Attachments: FC<AttachmentsProps> = ({
                 isLoading={isDeleting && attachmentToDelete?.path === at.path}
                 onClick={() => {
                   setAttachmentToDelete(at);
-                  onOpen();
+                  dialogOnOpen();
                 }}
               >
                 <Icon as={FaTrash} />
@@ -92,12 +114,19 @@ export const Attachments: FC<AttachmentsProps> = ({
       </Flex>
 
       <AlertDialog
-        isOpen={isOpen}
-        onClose={onClose}
+        isOpen={dialogIsOpen}
+        onClose={dialogOnClose}
         handleConfirm={handleConfirmDelete}
         handleCancel={async () => setAttachmentToDelete(undefined)}
         header="Remover"
         body="Tem certeza que deseja remover o anexo?"
+      />
+
+      <AttachmentModal
+        isOpen={modalIsOpen}
+        onClose={modalOnClose}
+        imgUrl={attachmentToVisualize?.publicURL || ''}
+        title={attachmentToVisualize?.path || ''}
       />
     </>
   );

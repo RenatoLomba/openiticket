@@ -7,7 +7,6 @@ import {
   useToast,
   VStack,
 } from '@chakra-ui/react';
-import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
@@ -20,10 +19,13 @@ import { Textarea } from '../Form/Textarea';
 import { SelectBox } from '../Form/SelectBox';
 import { UploadImageButton } from '../Form/UploadImageButton';
 
-import { ticketsService } from '../../services/tickets';
-import { createTicketFormSchema } from '../../helpers/yup';
-import { prioritiesList } from '../../helpers/constants/priorities';
+import {
+  prioritiesList,
+  PriorityTypes,
+} from '../../helpers/constants/priorities';
 import { storageService } from '../../services/storage';
+import { useCreateTicket } from '../../hooks/useTickets';
+import { createTicketFormSchema } from '../../helpers/yup';
 
 interface Attachment {
   publicURL: string;
@@ -34,14 +36,12 @@ interface Attachment {
 interface CreateTicketFormData {
   title: string;
   description: string;
-  priority: string;
+  priority: PriorityTypes;
 }
 
 export const CreateTicketForm: FC<BoxProps> = ({ ...props }) => {
-  const router = useRouter();
   const toast = useToast();
-
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const { mutateAsync: createTicket } = useCreateTicket();
   const {
     register,
     handleSubmit,
@@ -50,38 +50,10 @@ export const CreateTicketForm: FC<BoxProps> = ({ ...props }) => {
     resolver: yupResolver(createTicketFormSchema),
   });
 
-  const createTicket = async ({
-    description,
-    priority,
-    title,
-  }: CreateTicketFormData) => {
-    const { error } = await ticketsService.createTicket({
-      attachments,
-      description,
-      priority,
-      title,
-    });
-
-    if (error) {
-      toast({
-        status: 'error',
-        title: error.title,
-        description: error.description,
-      });
-      return;
-    }
-
-    toast({
-      status: 'success',
-      title: 'Ticket aberto',
-      description: `Sua solicitação foi concluída e será analisada pela nossa equipe técnica`,
-    });
-
-    router.push('/tickets');
-  };
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
 
   const createTicketFormSubmit = async (data: CreateTicketFormData) => {
-    await createTicket(data);
+    await createTicket({ ...data, attachments });
   };
 
   const onAttachmentUploaded = (attachment: Attachment) => {
@@ -153,7 +125,7 @@ export const CreateTicketForm: FC<BoxProps> = ({ ...props }) => {
               defaultValue="normal"
             />
 
-            <Button type="submit" isLoading={isSubmitting}>
+            <Button type="submit" isLoading={isSubmitting} bg="green.default">
               Criar ticket
             </Button>
           </VStack>
