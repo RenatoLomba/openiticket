@@ -1,14 +1,7 @@
-import { FC, useState } from 'react';
-import {
-  Box,
-  BoxProps,
-  Heading,
-  SimpleGrid,
-  useToast,
-  VStack,
-} from '@chakra-ui/react';
+import { SetStateAction } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Box, BoxProps, Heading, SimpleGrid, VStack } from '@chakra-ui/react';
 
 import { Card } from '../Card';
 import { Button } from '../Button';
@@ -23,8 +16,6 @@ import {
   prioritiesList,
   PriorityTypes,
 } from '../../helpers/constants/priorities';
-import { storageService } from '../../services/storage';
-import { useCreateTicket } from '../../hooks/useTickets';
 import { createTicketFormSchema } from '../../helpers/yup';
 
 interface Attachment {
@@ -33,56 +24,35 @@ interface Attachment {
   path: string;
 }
 
-interface CreateTicketFormData {
+interface TicketFormData {
   title: string;
   description: string;
   priority: PriorityTypes;
 }
 
-export const CreateTicketForm: FC<BoxProps> = ({ ...props }) => {
-  const toast = useToast();
-  const { mutateAsync: createTicket } = useCreateTicket();
+interface TicketFormProps extends BoxProps {
+  attachments: Attachment[];
+  setAttachments: (value: SetStateAction<Attachment[]>) => void;
+  ticketFormSubmit: (data: TicketFormData) => Promise<void>;
+  isDeletingAttachment: boolean;
+  handleDeleteAttachment: (at: Attachment) => Promise<void>;
+}
+
+export const TicketForm = ({
+  attachments,
+  setAttachments,
+  ticketFormSubmit,
+  handleDeleteAttachment,
+  isDeletingAttachment,
+  ...props
+}: TicketFormProps) => {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<CreateTicketFormData>({
+  } = useForm<TicketFormData>({
     resolver: yupResolver(createTicketFormSchema),
   });
-
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-
-  const createTicketFormSubmit = async (data: CreateTicketFormData) => {
-    await createTicket({ ...data, attachments });
-  };
-
-  const onAttachmentUploaded = (attachment: Attachment) => {
-    setAttachments((prev) => [attachment, ...prev]);
-
-    toast({
-      status: 'success',
-      title: 'Sucesso ao adicionar anexo',
-      description: `A imagem ${attachment.path} foi adicionada aos anexos`,
-    });
-  };
-
-  const handleDeleteAttachment = async (at: Attachment) => {
-    const { error } = await storageService.deleteImages({
-      bucket: at.bucket,
-      pathsToDelete: [at.path],
-    });
-
-    if (error) {
-      toast({
-        status: 'error',
-        title: error.title,
-        description: error.description,
-      });
-      return;
-    }
-
-    setAttachments((prev) => prev.filter((prevAt) => prevAt.path !== at.path));
-  };
 
   return (
     <Box p="8" as="main" {...props} overflow="hidden">
@@ -96,7 +66,7 @@ export const CreateTicketForm: FC<BoxProps> = ({ ...props }) => {
             maxWidth="380px"
             w="100%"
             as="form"
-            onSubmit={handleSubmit(createTicketFormSubmit)}
+            onSubmit={handleSubmit(ticketFormSubmit)}
             mt="8"
             spacing={6}
           >
@@ -134,13 +104,16 @@ export const CreateTicketForm: FC<BoxProps> = ({ ...props }) => {
             <UploadImageButton
               name="attachments"
               bucket="attachments"
-              onImageUploaded={onAttachmentUploaded}
+              onImageUploaded={(attachment) =>
+                setAttachments((prev) => [attachment, ...prev])
+              }
               isLoading={isSubmitting}
             >
               Anexar
             </UploadImageButton>
 
             <Attachments
+              isDeleting={isDeletingAttachment}
               attachments={attachments}
               handleDeleteAttachment={handleDeleteAttachment}
             />

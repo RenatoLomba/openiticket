@@ -1,9 +1,10 @@
 import { FaPaperclip } from 'react-icons/fa';
-import { ChangeEvent, FC, useRef, useState } from 'react';
-import { FormControl, FormLabel, Icon, useToast } from '@chakra-ui/react';
+import { ChangeEvent, FC, useRef } from 'react';
+import { FormControl, FormLabel, Icon } from '@chakra-ui/react';
 
 import { Button } from '../Button';
 import { storageService } from '../../services/storage';
+import { useUploadImage } from '../../helpers/mutations/useUploadImage';
 
 interface Image {
   path: string;
@@ -25,8 +26,23 @@ export const UploadImageButton: FC<UploadImageButtonProps> = ({
   isLoading = false,
   children,
 }) => {
-  const toast = useToast();
-  const [isSending, setIsSending] = useState(false);
+  const { isSending, uploadImage } = useUploadImage({
+    onSuccess: ({ path }) => {
+      const publicURL = storageService.getPublicURL({ bucket, path });
+
+      const image: Image = {
+        bucket,
+        path,
+        publicURL: publicURL as string,
+      };
+
+      onImageUploaded?.(image);
+
+      if (inputRef.current) {
+        inputRef.current.files = null;
+      }
+    },
+  });
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -39,38 +55,7 @@ export const UploadImageButton: FC<UploadImageButtonProps> = ({
 
     const imageFile = event.target.files[0];
 
-    setIsSending(true);
-
-    const { data, error } = await storageService.uploadImage({
-      bucket,
-      imageFile,
-    });
-
-    setIsSending(false);
-
-    if (error || !data) {
-      toast({
-        status: 'error',
-        title: error?.title,
-        description: error?.description,
-      });
-      return;
-    }
-
-    const { path } = data;
-    const publicURL = storageService.getPublicURL({ bucket, path });
-
-    const image: Image = {
-      bucket,
-      path,
-      publicURL: publicURL as string,
-    };
-
-    onImageUploaded?.(image);
-
-    if (inputRef.current) {
-      inputRef.current.files = null;
-    }
+    await uploadImage({ bucket, imageFile });
   };
 
   return (

@@ -21,25 +21,27 @@ interface Attachment {
 
 interface AttachmentsProps {
   attachments: Attachment[];
+  isDeleting: boolean;
   handleDeleteAttachment?: (attachment: Attachment) => Promise<void>;
 }
 
 export const Attachments: FC<AttachmentsProps> = ({
   attachments,
   handleDeleteAttachment,
+  isDeleting,
 }) => {
   const {
     isOpen: dialogIsOpen,
     onClose: dialogOnClose,
     onOpen: dialogOnOpen,
   } = useDisclosure();
+
   const {
     isOpen: modalIsOpen,
     onClose: modalOnClose,
     onOpen: modalOnOpen,
   } = useDisclosure();
 
-  const [isDeleting, setIsDeleting] = useState(false);
   const [attachmentToDelete, setAttachmentToDelete] = useState<Attachment>();
   const [attachmentToVisualize, setAttachmentToVisualize] =
     useState<Attachment>();
@@ -47,11 +49,7 @@ export const Attachments: FC<AttachmentsProps> = ({
   const hasAttachments = attachments.length > 0;
 
   const handleConfirmDelete = async () => {
-    setIsDeleting(true);
-
     await handleDeleteAttachment?.(attachmentToDelete as Attachment);
-
-    setIsDeleting(false);
   };
 
   const handleAttachmentClick = (at: Attachment) => {
