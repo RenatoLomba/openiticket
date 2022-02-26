@@ -1,4 +1,4 @@
-import { SetStateAction } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Box, BoxProps, Heading, SimpleGrid, VStack } from '@chakra-ui/react';
@@ -16,7 +16,7 @@ import {
   prioritiesList,
   PriorityTypes,
 } from '../../helpers/constants/priorities';
-import { createTicketFormSchema } from '../../helpers/yup';
+import { ticketFormSchema } from '../../helpers/yup';
 
 interface Attachment {
   publicURL: string;
@@ -24,35 +24,48 @@ interface Attachment {
   path: string;
 }
 
-interface TicketFormData {
+export interface TicketFormData {
   title: string;
   description: string;
   priority: PriorityTypes;
 }
 
 interface TicketFormProps extends BoxProps {
+  isLoading?: boolean;
+  buttonText?: string;
   attachments: Attachment[];
-  setAttachments: (value: SetStateAction<Attachment[]>) => void;
-  ticketFormSubmit: (data: TicketFormData) => Promise<void>;
   isDeletingAttachment: boolean;
+  defaultValues?: TicketFormData;
+  ticketFormSubmit: (data: TicketFormData) => Promise<void>;
   handleDeleteAttachment: (at: Attachment) => Promise<void>;
+  onImageUploaded?: (image: Attachment) => void;
 }
 
 export const TicketForm = ({
+  isLoading = false,
+  buttonText = 'Criar ticket',
+  defaultValues,
   attachments,
-  setAttachments,
+  onImageUploaded,
   ticketFormSubmit,
-  handleDeleteAttachment,
   isDeletingAttachment,
+  handleDeleteAttachment,
   ...props
 }: TicketFormProps) => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<TicketFormData>({
-    resolver: yupResolver(createTicketFormSchema),
+    resolver: yupResolver(ticketFormSchema),
   });
+
+  useEffect(() => {
+    if (defaultValues) {
+      reset(defaultValues);
+    }
+  }, [defaultValues]);
 
   return (
     <Box p="8" as="main" {...props} overflow="hidden">
@@ -95,8 +108,12 @@ export const TicketForm = ({
               defaultValue="normal"
             />
 
-            <Button type="submit" isLoading={isSubmitting} bg="green.default">
-              Criar ticket
+            <Button
+              type="submit"
+              isLoading={isSubmitting || isLoading}
+              bg="green.default"
+            >
+              {buttonText}
             </Button>
           </VStack>
 
@@ -104,16 +121,15 @@ export const TicketForm = ({
             <UploadImageButton
               name="attachments"
               bucket="attachments"
-              onImageUploaded={(attachment) =>
-                setAttachments((prev) => [attachment, ...prev])
-              }
-              isLoading={isSubmitting}
+              onImageUploaded={onImageUploaded}
+              isLoading={isSubmitting || isLoading}
             >
               Anexar
             </UploadImageButton>
 
             <Attachments
               isDeleting={isDeletingAttachment}
+              isLoading={isLoading}
               attachments={attachments}
               handleDeleteAttachment={handleDeleteAttachment}
             />

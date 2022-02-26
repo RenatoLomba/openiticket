@@ -23,7 +23,7 @@ const signInUserFormSchema = yup.object().shape({
     .max(12, 'Senha deve ter no máximo 12 caracteres'),
 });
 
-const createTicketFormSchema = yup.object().shape({
+const ticketFormSchema = yup.object().shape({
   title: yup.string().required('Título é obrigatório'),
   description: yup
     .string()
@@ -32,4 +32,4 @@ const createTicketFormSchema = yup.object().shape({
   priority: yup.string().required('Prioridade é obrigatória'),
 });
 
-export { createUserFormSchema, signInUserFormSchema, createTicketFormSchema };
+export { createUserFormSchema, signInUserFormSchema, ticketFormSchema };

@@ -22,6 +22,7 @@ interface Attachment {
 interface AttachmentsProps {
   attachments: Attachment[];
   isDeleting: boolean;
+  isLoading?: boolean;
   handleDeleteAttachment?: (attachment: Attachment) => Promise<void>;
 }
 
@@ -29,6 +30,7 @@ export const Attachments: FC<AttachmentsProps> = ({
   attachments,
   handleDeleteAttachment,
   isDeleting,
+  isLoading = false,
 }) => {
   const {
     isOpen: dialogIsOpen,
@@ -96,7 +98,10 @@ export const Attachments: FC<AttachmentsProps> = ({
                 right="4"
                 size="sm"
                 isFullWidth={false}
-                isLoading={isDeleting && attachmentToDelete?.path === at.path}
+                isLoading={
+                  (isDeleting && attachmentToDelete?.path === at.path) ||
+                  isLoading
+                }
                 onClick={() => {
                   setAttachmentToDelete(at);
                   dialogOnOpen();

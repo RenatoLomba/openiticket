@@ -6,23 +6,15 @@ import { Header } from '../../components/Header';
 import { AppGrid } from '../../components/AppGrid';
 import { Sidebar } from '../../components/Sidebar';
 import { Authenticated } from '../../components/Authenticated';
-import { TicketForm } from '../../components/Tickets/TicketForm';
+import {
+  TicketForm,
+  TicketFormData,
+} from '../../components/Tickets/TicketForm';
 
-import { PriorityTypes } from '../../helpers/constants/priorities';
+import { Attachment } from '../../services/types/tickets.types';
+
 import { useCreateTicket } from '../../helpers/mutations/useCreateTicket';
 import { useDeleteImages } from '../../helpers/mutations/useDeleteImages';
-
-interface Attachment {
-  publicURL: string;
-  bucket: string;
-  path: string;
-}
-
-interface TicketFormData {
-  title: string;
-  description: string;
-  priority: PriorityTypes;
-}
 
 const CreateTicketPage: NextPage = () => {
   const { createTicket } = useCreateTicket();
@@ -60,7 +52,7 @@ const CreateTicketPage: NextPage = () => {
           attachments={attachments}
           handleDeleteAttachment={handleDeleteAttachment}
           isDeletingAttachment={isDeletingAttachments}
-          setAttachments={setAttachments}
+          onImageUploaded={(at) => setAttachments((prev) => [at, ...prev])}
           ticketFormSubmit={createTicketFormSubmit}
         />
       </AppGrid>

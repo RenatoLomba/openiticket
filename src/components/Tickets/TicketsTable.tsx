@@ -2,6 +2,7 @@ import { FC } from 'react';
 import {
   Avatar,
   HStack,
+  Link,
   Table,
   Tbody,
   Td,
@@ -9,6 +10,7 @@ import {
   Tr,
   VStack,
 } from '@chakra-ui/react';
+import NextLink from 'next/link';
 
 import { Priority } from './Priority';
 import { Small } from '../Text/Small';
@@ -57,7 +59,11 @@ export const TicketsTable: FC<TicketsTableProps> = ({ tickets }) => {
                 />
 
                 <VStack align="flex-start">
-                  <Strong>{ticket.title}</Strong>
+                  <NextLink href={`/tickets/${ticket.id}`} passHref>
+                    <Link>
+                      <Strong>{ticket.title}</Strong>
+                    </Link>
+                  </NextLink>
                   <Small>{ticket.updated_at}</Small>
                 </VStack>
               </HStack>

@@ -1,6 +1,6 @@
 import { PriorityTypes } from '../../helpers/constants/priorities';
 
-interface AttachmentDTO {
+interface Attachment {
   bucket: string;
   path: string;
   publicURL: string;
@@ -10,7 +10,7 @@ interface CreateTicketDTO {
   title: string;
   description: string;
   priority: PriorityTypes;
-  attachments: AttachmentDTO[];
+  attachments: Attachment[];
 }
 
 interface Ticket {
@@ -19,7 +19,7 @@ interface Ticket {
   title: string;
   description: string;
   priority: PriorityTypes;
-  attachments: string;
+  attachments: Attachment[];
   created_at: string;
   updated_at: string;
   user: {
@@ -45,4 +45,21 @@ interface TicketResponse {
   created_at_hour: string;
 }
 
-export type { CreateTicketDTO, Ticket, TicketResponse };
+interface GetTicketResponse {
+  id: number;
+  title: string;
+  description: string;
+  priority: PriorityTypes;
+  attachments: Attachment[];
+}
+
+type UpdateTicketDTO = Partial<CreateTicketDTO> & { id: number };
+
+export type {
+  Ticket,
+  Attachment,
+  TicketResponse,
+  UpdateTicketDTO,
+  CreateTicketDTO,
+  GetTicketResponse,
+};

@@ -1,6 +1,11 @@
 import { supabaseClient } from '../libs/supabase';
 import { ResponseError } from '../helpers/errors';
-import { CreateTicketDTO, Ticket, TicketResponse } from './types/tickets.types';
+import {
+  CreateTicketDTO,
+  Ticket,
+  TicketResponse,
+  UpdateTicketDTO,
+} from './types/tickets.types';
 
 export const ticketsService = {
   async createTicket({
@@ -29,7 +34,7 @@ export const ticketsService = {
           description,
           priority,
           user_id,
-          attachments: JSON.stringify(attachments),
+          attachments,
           user: {
             id: user_id,
             full_name: user_metadata.full_name,
@@ -103,5 +108,50 @@ export const ticketsService = {
     });
 
     return tickets;
+  },
+
+  async getTicket(id: number) {
+    const { data, error } = await supabaseClient
+      .from<Ticket>('tickets')
+      .select(
+        `
+        id,
+        title,
+        description,
+        priority,
+        attachments
+      `,
+      )
+      .eq('id', id)
+      .single();
+
+    if (!data || error) {
+      throw new ResponseError({
+        code: 500,
+        title: error?.message,
+        description: error?.details,
+      });
+    }
+
+    return data;
+  },
+
+  async updateTicket(dto: UpdateTicketDTO) {
+    const { data, error } = await supabaseClient
+      .from<Ticket>('tickets')
+      .update({
+        ...dto,
+      })
+      .match({ id: dto.id });
+
+    if (!data || error) {
+      throw new ResponseError({
+        code: 500,
+        title: error?.message,
+        description: error?.details,
+      });
+    }
+
+    return data[0];
   },
 };

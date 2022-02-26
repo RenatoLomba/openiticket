@@ -36,11 +36,11 @@ export const UploadImageButton: FC<UploadImageButtonProps> = ({
         publicURL: publicURL as string,
       };
 
-      onImageUploaded?.(image);
-
       if (inputRef.current) {
         inputRef.current.files = null;
       }
+
+      onImageUploaded?.(image);
     },
   });
 
