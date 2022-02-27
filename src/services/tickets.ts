@@ -6,6 +6,7 @@ import {
   TicketResponse,
   UpdateTicketDTO,
 } from './types/tickets.types';
+import { SortTypes } from '../helpers/constants/sorters';
 
 export const ticketsService = {
   async createTicket({
@@ -54,11 +55,15 @@ export const ticketsService = {
     return data[0];
   },
 
-  async getTickets(page: number, size: number) {
+  async getTickets(
+    page: number,
+    size: number,
+    sortBy: SortTypes = 'created_at',
+  ) {
     const from = (page - 1) * size;
     const to = from + (size - 1);
 
-    const { data, error } = await supabaseClient
+    let query = supabaseClient
       .from<Ticket>('tickets')
       .select(
         `
@@ -69,11 +74,22 @@ export const ticketsService = {
           priority,
           user
         `,
+        { count: 'exact' },
       )
-      .order('created_at', { ascending: false })
       .range(from, to);
 
-    if (error || !data) {
+    switch (sortBy) {
+      case 'created_at':
+        query = query.order('created_at', { ascending: false });
+        break;
+      case 'alpha':
+        query = query.order('title', { ascending: true });
+        break;
+    }
+
+    const { data, error, count } = await query;
+
+    if (error || !data || !count) {
       throw new ResponseError({
         title: error?.message,
         description: error?.details,
@@ -107,7 +123,12 @@ export const ticketsService = {
       };
     });
 
-    return tickets;
+    return {
+      tickets,
+      fromTicket: from + 1,
+      toTicket: from + tickets.length,
+      totalTicketsCount: count,
+    };
   },
 
   async getTicket(id: number) {

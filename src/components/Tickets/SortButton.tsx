@@ -8,7 +8,6 @@ import {
   MenuList,
   Text,
 } from '@chakra-ui/react';
-import { FaSortAmountUp } from 'react-icons/fa';
 import { Sorter, sorters } from '../../helpers/constants/sorters';
 
 interface SortButtonProps {
@@ -21,7 +20,7 @@ export const SortButton: FC<SortButtonProps> = ({ sortBy, changeSortBy }) => {
     <Menu isLazy>
       <MenuButton>
         <HStack>
-          <Icon as={FaSortAmountUp} color="grayscale.grayLight" w="4" h="4" />
+          <Icon as={sortBy.icon} color="grayscale.grayLight" w="4" h="4" />
           <Text fontWeight="semibold" fontSize="sm" isTruncated>
             {sortBy.text}
           </Text>
@@ -32,7 +31,11 @@ export const SortButton: FC<SortButtonProps> = ({ sortBy, changeSortBy }) => {
           if (sorter == sortBy) return null;
 
           return (
-            <MenuItem key={sorter.value} onClick={() => changeSortBy(sorter)}>
+            <MenuItem
+              key={sorter.value}
+              onClick={() => changeSortBy(sorter)}
+              icon={<Icon as={sorter.icon} />}
+            >
               {sorter.text}
             </MenuItem>
           );
