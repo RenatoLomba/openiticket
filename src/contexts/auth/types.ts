@@ -1,8 +1,15 @@
+interface Role {
+  id: number;
+  user_id: string;
+  roles: string[];
+}
+
 interface User {
   id: string;
   email: string;
   full_name: string;
   avatar_url?: string;
+  roles?: string[];
 }
 
 interface SignUpParams {
@@ -24,4 +31,4 @@ interface AuthContextData {
   signOut: () => Promise<void>;
 }
 
-export type { User, SignInParams, SignUpParams, AuthContextData };
+export type { User, SignInParams, SignUpParams, AuthContextData, Role };

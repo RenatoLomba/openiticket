@@ -11,8 +11,11 @@ import {
 
 import { ActiveLink } from './ActiveLink';
 import { SidebarDivider } from './SidebarDivider';
+import { useIsAdmin } from '../../hooks/useIsAdmin';
 
 export const Sidebar: FC<BoxProps> = ({ ...rest }) => {
+  const userIsAdmin = useIsAdmin();
+
   return (
     <Box bg="sidebar.bg" {...rest} as="aside">
       <Heading
@@ -26,14 +29,18 @@ export const Sidebar: FC<BoxProps> = ({ ...rest }) => {
       </Heading>
 
       <Flex flexDir="column" mt="24">
-        <ActiveLink href="/dashboard" text="Dashboard" icon={FaChartPie} />
+        {userIsAdmin && (
+          <ActiveLink href="/dashboard" text="Dashboard" icon={FaChartPie} />
+        )}
         <ActiveLink href="/tickets" text="Tickets" icon={FaTicketAlt} />
         <ActiveLink
           href="/tickets/create"
           text="Cadastrar"
           icon={FaStickyNote}
         />
-        <ActiveLink href="/rating" text="Avalie" icon={FaStar} />
+        {!userIsAdmin && (
+          <ActiveLink href="/rating" text="Avalie" icon={FaStar} />
+        )}
 
         <SidebarDivider my="4" />
 

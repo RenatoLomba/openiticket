@@ -1,7 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Box, BoxProps, Heading, SimpleGrid, VStack } from '@chakra-ui/react';
+import {
+  Avatar,
+  Box,
+  BoxProps,
+  Flex,
+  Heading,
+  SimpleGrid,
+  Text,
+  VStack,
+} from '@chakra-ui/react';
 
 import { Card } from '../Card';
 import { Button } from '../Button';
@@ -17,6 +26,10 @@ import {
   PriorityTypes,
 } from '../../helpers/constants/priorities';
 import { ticketFormSchema } from '../../helpers/yup';
+import { useIsAdmin } from '../../hooks/useIsAdmin';
+import { useAuth } from '../../hooks/useAuth';
+import { Replies } from './Replies';
+import { GetTicketResponse } from '../../services/types/tickets.types';
 
 interface Attachment {
   publicURL: string;
@@ -39,6 +52,7 @@ interface TicketFormProps extends BoxProps {
   ticketFormSubmit: (data: TicketFormData) => Promise<void>;
   handleDeleteAttachment: (at: Attachment) => Promise<void>;
   onImageUploaded?: (image: Attachment) => void;
+  ticket?: GetTicketResponse;
 }
 
 export const TicketForm = ({
@@ -50,8 +64,27 @@ export const TicketForm = ({
   ticketFormSubmit,
   isDeletingAttachment,
   handleDeleteAttachment,
+  ticket,
   ...props
 }: TicketFormProps) => {
+  const { user } = useAuth();
+  const userIsAdmin = useIsAdmin();
+  const userOwnerId = ticket?.user_id;
+
+  const userIsAllowedToModify = useMemo(() => {
+    let allow = true;
+
+    if (!user) {
+      allow = false;
+    }
+
+    if (userOwnerId && user) {
+      allow = user.id === userOwnerId;
+    }
+
+    return allow;
+  }, [user, userOwnerId]);
+
   const {
     register,
     handleSubmit,
@@ -70,11 +103,20 @@ export const TicketForm = ({
   return (
     <Box p="8" as="main" {...props} overflow="hidden">
       <Card h="100%" as="section" overflow="auto">
-        <Heading as="h3" size="md">
-          Coloque as informações essenciais do Ticket
-        </Heading>
+        {!ticket && (
+          <Heading as="h3" size="md">
+            Coloque as informações essenciais do Ticket
+          </Heading>
+        )}
 
-        <SimpleGrid mt="8" gap={8} columns={2} templateColumns="1fr 2fr">
+        {ticket && (
+          <Flex align="center" gap={5}>
+            <Avatar src={ticket.user.avatar_url} />
+            <Text>{ticket.user.full_name}</Text>
+          </Flex>
+        )}
+
+        <SimpleGrid mt="5" gap={8} columns={2} templateColumns="1fr 2fr">
           <VStack
             maxWidth="380px"
             w="100%"
@@ -86,6 +128,7 @@ export const TicketForm = ({
             <Input
               {...register('title')}
               error={errors.title}
+              isDisabled={!userIsAllowedToModify}
               name="title"
               label="Título"
               placeholder="Digite o título"
@@ -94,6 +137,7 @@ export const TicketForm = ({
             <Textarea
               {...register('description')}
               error={errors.description}
+              isDisabled={!userIsAllowedToModify}
               name="description"
               label="Descrição"
               placeholder="Descreva o seu problema"
@@ -102,38 +146,53 @@ export const TicketForm = ({
             <SelectBox
               {...register('priority')}
               error={errors.priority}
+              isDisabled={!userIsAllowedToModify}
               name="priority"
               label="Prioridade"
               options={prioritiesList}
               defaultValue="normal"
             />
 
-            <Button
-              type="submit"
-              isLoading={isSubmitting || isLoading}
-              bg="green.default"
-            >
-              {buttonText}
-            </Button>
+            {userIsAllowedToModify && (
+              <Button
+                type="submit"
+                isLoading={isSubmitting || isLoading}
+                bg="green.default"
+              >
+                {buttonText}
+              </Button>
+            )}
           </VStack>
 
           <Box>
-            <UploadImageButton
-              name="attachments"
-              bucket="attachments"
-              onImageUploaded={onImageUploaded}
-              isLoading={isSubmitting || isLoading}
-            >
-              Anexar
-            </UploadImageButton>
+            {userIsAllowedToModify && (
+              <UploadImageButton
+                name="attachments"
+                bucket="attachments"
+                onImageUploaded={onImageUploaded}
+                isLoading={isSubmitting || isLoading}
+              >
+                Anexar
+              </UploadImageButton>
+            )}
 
             <Attachments
               isDeleting={isDeletingAttachment}
               isLoading={isLoading}
               attachments={attachments}
               handleDeleteAttachment={handleDeleteAttachment}
+              userIsAllowedToDelete={userIsAllowedToModify}
             />
           </Box>
+
+          {(userIsAdmin || userIsAllowedToModify) && ticket && (
+            <Replies
+              replies={ticket.replies}
+              userIsAllowedToModify={userIsAdmin || userIsAllowedToModify}
+              gridColumn="span 2"
+              ticket_id={ticket.id}
+            />
+          )}
         </SimpleGrid>
       </Card>
     </Box>

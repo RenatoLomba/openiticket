@@ -80,6 +80,7 @@ const UpdateTicket: NextPage = () => {
           gridArea="content"
           buttonText="Editar ticket"
           defaultValues={ticket}
+          ticket={ticket}
           attachments={attachments}
           handleDeleteAttachment={handleDeleteAttachment}
           isDeletingAttachment={isDeletingAttachments}

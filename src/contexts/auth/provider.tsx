@@ -5,7 +5,7 @@ import { FC, useEffect, useState } from 'react';
 
 import { AuthContext } from './';
 import { supabaseClient } from '../../libs/supabase';
-import type { SignInParams, SignUpParams, User } from './types';
+import type { Role, SignInParams, SignUpParams, User } from './types';
 
 const AuthProvider: FC = ({ children }) => {
   const toast = useToast();
@@ -29,7 +29,7 @@ const AuthProvider: FC = ({ children }) => {
       toast({
         status: 'error',
         title: `Erro ${error?.status}`,
-        description: error?.message || 'Erro inexperado',
+        description: error?.message || 'Erro inesperado',
       });
       return;
     }
@@ -50,7 +50,7 @@ const AuthProvider: FC = ({ children }) => {
       toast({
         status: 'error',
         title: `Erro ${error?.status}`,
-        description: error?.message || 'Erro inexperado',
+        description: error?.message || 'Erro inesperado',
       });
       return;
     }
@@ -94,6 +94,38 @@ const AuthProvider: FC = ({ children }) => {
       data?.unsubscribe();
     };
   }, []);
+
+  const getUserRoles = async () => {
+    const { data, error } = await supabaseClient
+      .from<Role>('roles')
+      .select('id, roles')
+      .eq('user_id', user?.id as string);
+
+    if (!data || error) {
+      toast({
+        status: 'error',
+        title: `Erro ${error?.code}`,
+        description: error?.message || 'Erro inesperado',
+      });
+      return;
+    }
+
+    const roles = data[0].roles;
+
+    setUser(
+      (user) =>
+        ({
+          ...user,
+          roles,
+        } as User),
+    );
+  };
+
+  useEffect(() => {
+    if (user && !user.roles) {
+      getUserRoles();
+    }
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, signUp, signIn, signOut }}>

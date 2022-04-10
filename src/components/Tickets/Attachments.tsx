@@ -7,6 +7,7 @@ import {
   Box,
   Icon,
   useDisclosure,
+  FlexProps,
 } from '@chakra-ui/react';
 
 import { Button } from '../Button';
@@ -19,18 +20,21 @@ interface Attachment {
   bucket: string;
 }
 
-interface AttachmentsProps {
+interface AttachmentsProps extends FlexProps {
   attachments: Attachment[];
-  isDeleting: boolean;
+  isDeleting?: boolean;
   isLoading?: boolean;
   handleDeleteAttachment?: (attachment: Attachment) => Promise<void>;
+  userIsAllowedToDelete?: boolean;
 }
 
 export const Attachments: FC<AttachmentsProps> = ({
   attachments,
   handleDeleteAttachment,
-  isDeleting,
+  isDeleting = false,
+  userIsAllowedToDelete = false,
   isLoading = false,
+  ...props
 }) => {
   const {
     isOpen: dialogIsOpen,
@@ -63,11 +67,13 @@ export const Attachments: FC<AttachmentsProps> = ({
   return (
     <>
       <Flex
+        {...props}
         p="4"
         mt="8"
-        h="100%"
+        w="100%"
         border="1px"
         columnGap="4"
+        rowGap="4"
         flexWrap="wrap"
         borderStyle="dashed"
         borderColor="grayscale.divider"
@@ -86,29 +92,32 @@ export const Attachments: FC<AttachmentsProps> = ({
               position="relative"
             >
               <Image
+                maxHeight="100%"
                 src={at.publicURL}
                 cursor="pointer"
                 onClick={() => handleAttachmentClick(at)}
               />
 
-              <Button
-                bg="red.default"
-                position="absolute"
-                top="4"
-                right="4"
-                size="sm"
-                isFullWidth={false}
-                isLoading={
-                  (isDeleting && attachmentToDelete?.path === at.path) ||
-                  isLoading
-                }
-                onClick={() => {
-                  setAttachmentToDelete(at);
-                  dialogOnOpen();
-                }}
-              >
-                <Icon as={FaTrash} />
-              </Button>
+              {userIsAllowedToDelete && (
+                <Button
+                  bg="red.default"
+                  position="absolute"
+                  top="4"
+                  right="4"
+                  size="sm"
+                  isFullWidth={false}
+                  isLoading={
+                    (isDeleting && attachmentToDelete?.path === at.path) ||
+                    isLoading
+                  }
+                  onClick={() => {
+                    setAttachmentToDelete(at);
+                    dialogOnOpen();
+                  }}
+                >
+                  <Icon as={FaTrash} />
+                </Button>
+              )}
             </Box>
           ))
         ) : (

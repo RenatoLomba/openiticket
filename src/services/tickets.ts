@@ -138,12 +138,23 @@ export const ticketsService = {
         `
         id,
         title,
+        user_id,
+        user,
         description,
         priority,
-        attachments
+        attachments,
+        replies (
+          id,
+          message,
+          created_at,
+          attachments,
+          user_id,
+          user
+        )
       `,
       )
       .eq('id', id)
+      .order('created_at', { ascending: false, foreignTable: 'replies' })
       .single();
 
     if (!data || error) {
@@ -154,7 +165,27 @@ export const ticketsService = {
       });
     }
 
-    return data;
+    const ticket = {
+      ...data,
+      replies: data.replies.map((reply) => {
+        const createdAtDate = new Date(reply.created_at);
+
+        return {
+          ...reply,
+          created_at_date: createdAtDate.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+          }),
+          created_at_hour: createdAtDate.toLocaleTimeString('pt-BR', {
+            hour: 'numeric',
+            minute: '2-digit',
+          }),
+        };
+      }),
+    };
+
+    return ticket;
   },
 
   async updateTicket(dto: UpdateTicketDTO) {

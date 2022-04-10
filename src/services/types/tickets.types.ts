@@ -1,4 +1,5 @@
 import { PriorityTypes } from '../../helpers/constants/priorities';
+import { Reply } from './replies.types';
 
 interface Attachment {
   bucket: string;
@@ -28,6 +29,7 @@ interface Ticket {
     avatar_url: string;
     created_at: string;
   };
+  replies: Reply[];
 }
 
 interface TicketResponse {
@@ -45,12 +47,24 @@ interface TicketResponse {
   created_at_hour: string;
 }
 
+export type ReplyFormatted = Reply & {
+  created_at_date: string;
+  created_at_hour: string;
+};
+
 interface GetTicketResponse {
   id: number;
   title: string;
+  user_id: string;
+  user: {
+    full_name: string;
+    avatar_url: string;
+    created_at: string;
+  };
   description: string;
   priority: PriorityTypes;
   attachments: Attachment[];
+  replies: ReplyFormatted[];
 }
 
 type UpdateTicketDTO = Partial<CreateTicketDTO> & { id: number };
