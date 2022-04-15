@@ -30,6 +30,8 @@ interface Ticket {
     created_at: string;
   };
   replies: Reply[];
+  is_resolved: boolean;
+  resolved_at?: string;
 }
 
 interface TicketResponse {
@@ -45,6 +47,7 @@ interface TicketResponse {
   };
   created_at_date: string;
   created_at_hour: string;
+  is_resolved: boolean;
 }
 
 export type ReplyFormatted = Reply & {
@@ -65,6 +68,10 @@ interface GetTicketResponse {
   priority: PriorityTypes;
   attachments: Attachment[];
   replies: ReplyFormatted[];
+  is_resolved: boolean;
+  resolved_at?: string;
+  resolved_at_date?: string;
+  resolved_at_hour?: string;
 }
 
 type UpdateTicketDTO = Partial<CreateTicketDTO> & { id: number };

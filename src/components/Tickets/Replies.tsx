@@ -14,7 +14,11 @@ import { MdSend } from 'react-icons/md';
 
 import { useCreateReply } from '../../helpers/mutations/useCreateReply';
 import { useDeleteImages } from '../../helpers/mutations/useDeleteImages';
-import { Attachment, ReplyFormatted } from '../../services/types/tickets.types';
+import {
+  Attachment,
+  GetTicketResponse,
+  ReplyFormatted,
+} from '../../services/types/tickets.types';
 
 import { Button } from '../Button';
 import { Textarea } from '../Form/Textarea';
@@ -25,11 +29,13 @@ import { ReplyAttachments } from './ReplyAttachments';
 
 interface RepliesProps extends SimpleGridProps {
   ticket_id: number;
+  ticket: GetTicketResponse;
   replies: ReplyFormatted[];
   userIsAllowedToModify?: boolean;
 }
 
 export const Replies: FC<RepliesProps> = ({
+  ticket,
   ticket_id,
   replies,
   userIsAllowedToModify = false,
@@ -101,45 +107,52 @@ export const Replies: FC<RepliesProps> = ({
       <Heading alignSelf="flex-start" as="h3" size="md">
         Respostas
       </Heading>
-      <SimpleGrid {...props} gap={8} columns={2} templateColumns="1fr 2fr">
-        <VStack as="form" onSubmit={handleSubmit}>
-          <Textarea
-            ref={messageBoxRef}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            error={messageError && { type: 'required', ...messageError }}
-            label="Mensagem"
-            name="message"
-          />
-          <HStack justify="flex-start" w="100%">
-            <UploadImageButton
-              isLoading={isCreating}
-              onImageUploaded={onAttachmentUploaded}
-              name="messages"
-              bucket="messages"
-            >
-              Anexar
-            </UploadImageButton>
-            <Button
-              isLoading={isCreating}
-              isDisabled={!canSendMessage}
-              type="submit"
-              rightIcon={<Icon as={MdSend} />}
-              size="sm"
-              isFullWidth={false}
-            >
-              Enviar
-            </Button>
-          </HStack>
-          {attachments.length > 0 && (
-            <Attachments
-              userIsAllowedToDelete={userIsAllowedToModify}
-              attachments={attachments}
-              handleDeleteAttachment={handleDeleteAttachment}
-              isDeleting={isDeletingAttachments}
+      <SimpleGrid
+        {...props}
+        gap={8}
+        columns={2}
+        templateColumns={ticket.is_resolved ? '2fr 1fr' : '1fr 2fr'}
+      >
+        {!ticket.is_resolved && (
+          <VStack as="form" onSubmit={handleSubmit}>
+            <Textarea
+              ref={messageBoxRef}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              error={messageError && { type: 'required', ...messageError }}
+              label="Mensagem"
+              name="message"
             />
-          )}
-        </VStack>
+            <HStack justify="flex-start" w="100%">
+              <UploadImageButton
+                isLoading={isCreating}
+                onImageUploaded={onAttachmentUploaded}
+                name="messages"
+                bucket="messages"
+              >
+                Anexar
+              </UploadImageButton>
+              <Button
+                isLoading={isCreating}
+                isDisabled={!canSendMessage}
+                type="submit"
+                rightIcon={<Icon as={MdSend} />}
+                size="sm"
+                isFullWidth={false}
+              >
+                Enviar
+              </Button>
+            </HStack>
+            {attachments.length > 0 && (
+              <Attachments
+                userIsAllowedToDelete={userIsAllowedToModify}
+                attachments={attachments}
+                handleDeleteAttachment={handleDeleteAttachment}
+                isDeleting={isDeletingAttachments}
+              />
+            )}
+          </VStack>
+        )}
 
         <VStack align="flex-start" gap={5} pl={10} w="100%">
           {replies.map((reply) => {

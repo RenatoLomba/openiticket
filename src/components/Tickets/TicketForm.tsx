@@ -30,6 +30,8 @@ import { useIsAdmin } from '../../hooks/useIsAdmin';
 import { useAuth } from '../../hooks/useAuth';
 import { Replies } from './Replies';
 import { GetTicketResponse } from '../../services/types/tickets.types';
+import { useResolveTicket } from '../../helpers/mutations/useResolveTicket';
+import { Strong } from '../Text/Strong';
 
 interface Attachment {
   publicURL: string;
@@ -82,6 +84,10 @@ export const TicketForm = ({
       allow = user.id === userOwnerId;
     }
 
+    if (ticket?.is_resolved) {
+      allow = false;
+    }
+
     return allow;
   }, [user, userOwnerId]);
 
@@ -100,6 +106,17 @@ export const TicketForm = ({
     }
   }, [defaultValues]);
 
+  const { resolveTicket, isLoading: isResolving } = useResolveTicket();
+
+  const onResolveButtonClick = async () => {
+    if (!userIsAdmin || !ticket) return;
+
+    await resolveTicket(ticket.id);
+  };
+
+  const ticketIsResolvedAndHasNoReplies =
+    ticket?.is_resolved && ticket?.replies.length === 0;
+
   return (
     <Box p="8" as="main" {...props} overflow="hidden">
       <Card h="100%" as="section" overflow="auto">
@@ -110,9 +127,28 @@ export const TicketForm = ({
         )}
 
         {ticket && (
-          <Flex align="center" gap={5}>
+          <Flex align="center" gap={5} w="100%">
             <Avatar src={ticket.user.avatar_url} />
             <Text>{ticket.user.full_name}</Text>
+
+            {userIsAdmin && !ticket.is_resolved && (
+              <Button
+                marginLeft="auto"
+                isFullWidth={false}
+                onClick={onResolveButtonClick}
+                isLoading={isResolving}
+              >
+                Finalizar ticket
+              </Button>
+            )}
+
+            {ticket.is_resolved && (
+              <Text marginLeft="auto" fontSize="xl">
+                Finalizado em{' '}
+                <Strong fontSize="xl">{ticket.resolved_at_date}</Strong> às{' '}
+                <Strong fontSize="xl">{ticket.resolved_at_hour}</Strong>
+              </Text>
+            )}
           </Flex>
         )}
 
@@ -185,14 +221,17 @@ export const TicketForm = ({
             />
           </Box>
 
-          {(userIsAdmin || userIsAllowedToModify) && ticket && (
-            <Replies
-              replies={ticket.replies}
-              userIsAllowedToModify={userIsAdmin || userIsAllowedToModify}
-              gridColumn="span 2"
-              ticket_id={ticket.id}
-            />
-          )}
+          {(userIsAdmin || userIsAllowedToModify) &&
+            ticket &&
+            !ticketIsResolvedAndHasNoReplies && (
+              <Replies
+                ticket={ticket}
+                replies={ticket.replies}
+                userIsAllowedToModify={userIsAdmin || userIsAllowedToModify}
+                gridColumn="span 2"
+                ticket_id={ticket.id}
+              />
+            )}
         </SimpleGrid>
       </Card>
     </Box>

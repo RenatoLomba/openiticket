@@ -2,6 +2,7 @@ import { supabaseClient } from '../libs/supabase';
 import { ResponseError } from '../helpers/errors';
 import {
   CreateTicketDTO,
+  GetTicketResponse,
   Ticket,
   TicketResponse,
   UpdateTicketDTO,
@@ -72,7 +73,9 @@ export const ticketsService = {
           created_at, 
           updated_at, 
           priority,
-          user
+          user,
+          is_resolved,
+          resolved_at
         `,
         { count: 'exact' },
       )
@@ -104,7 +107,7 @@ export const ticketsService = {
 
       const days = Math.ceil(difference / (1000 * 3600 * 24));
 
-      return {
+      const ticketResponse: TicketResponse = {
         ...ticket,
         updated_at: `Atualizado a ${days} dias atrás`,
         created_at_date: createdAtDate.toLocaleDateString('pt-BR', {
@@ -121,6 +124,8 @@ export const ticketsService = {
           created_at: new Date(ticket.user.created_at).toLocaleDateString(),
         },
       };
+
+      return ticketResponse;
     });
 
     return {
@@ -143,6 +148,8 @@ export const ticketsService = {
         description,
         priority,
         attachments,
+        is_resolved,
+        resolved_at,
         replies (
           id,
           message,
@@ -165,7 +172,7 @@ export const ticketsService = {
       });
     }
 
-    const ticket = {
+    let ticket: GetTicketResponse = {
       ...data,
       replies: data.replies.map((reply) => {
         const createdAtDate = new Date(reply.created_at);
@@ -185,6 +192,23 @@ export const ticketsService = {
       }),
     };
 
+    if (data.resolved_at) {
+      const resolvedAtDate = new Date(data.resolved_at);
+
+      ticket = {
+        ...ticket,
+        resolved_at_date: resolvedAtDate.toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+        }),
+        resolved_at_hour: resolvedAtDate.toLocaleTimeString('pt-BR', {
+          hour: 'numeric',
+          minute: '2-digit',
+        }),
+      };
+    }
+
     return ticket;
   },
 
@@ -195,6 +219,26 @@ export const ticketsService = {
         ...dto,
       })
       .match({ id: dto.id });
+
+    if (!data || error) {
+      throw new ResponseError({
+        code: 500,
+        title: error?.message,
+        description: error?.details,
+      });
+    }
+
+    return data[0];
+  },
+
+  async resolveTicket(ticket_id: number) {
+    const { data, error } = await supabaseClient
+      .from<Ticket>('tickets')
+      .update({
+        is_resolved: true,
+        resolved_at: new Date().toUTCString(),
+      })
+      .match({ id: ticket_id });
 
     if (!data || error) {
       throw new ResponseError({

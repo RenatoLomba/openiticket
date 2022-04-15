@@ -16,24 +16,10 @@ import { Priority } from './Priority';
 import { Small } from '../Text/Small';
 import { Strong } from '../Text/Strong';
 
-import { PriorityTypes } from '../../helpers/constants/priorities';
-
-interface Ticket {
-  id: number;
-  title: string;
-  priority: PriorityTypes;
-  updated_at: string;
-  created_at_date: string;
-  created_at_hour: string;
-  user: {
-    full_name: string;
-    avatar_url: string;
-    created_at: string;
-  };
-}
+import { TicketResponse } from '../../services/types/tickets.types';
 
 interface TicketsTableProps {
-  tickets: Ticket[];
+  tickets: TicketResponse[];
 }
 
 export const TicketsTable: FC<TicketsTableProps> = ({ tickets }) => {
@@ -43,14 +29,19 @@ export const TicketsTable: FC<TicketsTableProps> = ({ tickets }) => {
         <Tr fontSize="md" fontWeight="bold" color="grayscale.gray">
           <Td>Detalhes</Td>
           <Td>Solicitante</Td>
-          <Td>Data</Td>
+          <Td>Data de abertura</Td>
           <Td>Prioridade</Td>
         </Tr>
       </Thead>
 
       <Tbody>
         {tickets.map((ticket) => (
-          <Tr _hover={{ bg: 'accent.bg' }} key={ticket.id}>
+          <Tr
+            _hover={{ bg: ticket.is_resolved ? 'gray.50' : 'accent.bg' }}
+            key={ticket.id}
+            opacity={ticket.is_resolved ? 0.5 : 1}
+            background={ticket.is_resolved ? 'gray.50' : ''}
+          >
             <Td>
               <HStack spacing={8}>
                 <Avatar
@@ -60,8 +51,20 @@ export const TicketsTable: FC<TicketsTableProps> = ({ tickets }) => {
 
                 <VStack align="flex-start">
                   <NextLink href={`/tickets/${ticket.id}`} passHref>
-                    <Link>
-                      <Strong>{ticket.title}</Strong>
+                    <Link
+                      _hover={{
+                        textDecoration: ticket.is_resolved
+                          ? 'none'
+                          : 'underline',
+                      }}
+                    >
+                      <Strong
+                        textDecorationLine={
+                          ticket.is_resolved ? 'line-through' : ''
+                        }
+                      >
+                        {ticket.title}
+                      </Strong>
                     </Link>
                   </NextLink>
                   <Small>{ticket.updated_at}</Small>
