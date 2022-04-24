@@ -8,6 +8,7 @@ import { HeaderButton } from './HeaderButton';
 import { HeaderDivider } from './HeaderDivider';
 
 import { useAuth } from '../../hooks/useAuth';
+import { useNotifications } from '../../hooks/useNotifications';
 
 interface HeaderProps extends BoxProps {
   title: string;
@@ -15,6 +16,8 @@ interface HeaderProps extends BoxProps {
 
 const Header: FC<HeaderProps> = ({ title, ...rest }) => {
   const { user } = useAuth();
+  const { openNotificationsDrawer, notificationsVisualized } =
+    useNotifications();
 
   return (
     <Box as="header" py="5" px="8" {...rest}>
@@ -26,7 +29,11 @@ const Header: FC<HeaderProps> = ({ title, ...rest }) => {
         <HStack spacing={8}>
           <HStack>
             <HeaderButton icon={FaSearch} />
-            <HeaderButton icon={FaBell} />
+            <HeaderButton
+              showBadge={!notificationsVisualized}
+              icon={FaBell}
+              onClick={openNotificationsDrawer}
+            />
           </HStack>
 
           <HeaderDivider />

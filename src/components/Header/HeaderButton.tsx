@@ -1,14 +1,20 @@
 import { FC } from 'react';
 import { IconType } from 'react-icons';
-import { Button, ButtonProps, Icon as ChakraIcon } from '@chakra-ui/react';
+import { Box, Button, ButtonProps, Icon as ChakraIcon } from '@chakra-ui/react';
 
 interface HeaderButtonProps extends ButtonProps {
   icon: IconType;
+  showBadge?: boolean;
 }
 
-const HeaderButton: FC<HeaderButtonProps> = ({ icon: Icon, ...rest }) => {
+const HeaderButton: FC<HeaderButtonProps> = ({
+  icon: Icon,
+  showBadge = false,
+  ...rest
+}) => {
   return (
     <Button
+      position="relative"
       borderRadius="full"
       bg="grayscale.border"
       color="grayscale.grayLight"
@@ -18,6 +24,18 @@ const HeaderButton: FC<HeaderButtonProps> = ({ icon: Icon, ...rest }) => {
       {...rest}
     >
       <ChakraIcon as={Icon} />
+
+      {showBadge && (
+        <Box
+          position="absolute"
+          w="10px"
+          h="10px"
+          bg="red.default"
+          top={0}
+          right={0}
+          borderRadius="full"
+        />
+      )}
     </Button>
   );
 };
