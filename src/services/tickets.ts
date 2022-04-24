@@ -3,6 +3,7 @@ import { ResponseError } from '../helpers/errors';
 import {
   CreateTicketDTO,
   GetTicketResponse,
+  SearchTicketsResponse,
   Ticket,
   TicketResponse,
   UpdateTicketDTO,
@@ -54,6 +55,42 @@ export const ticketsService = {
     }
 
     return data[0];
+  },
+
+  async searchTicket(searchText: string): Promise<SearchTicketsResponse[]> {
+    const { data, error } = await supabaseClient
+      .from<Ticket>('tickets')
+      .select(
+        `
+        id,
+        title, 
+        created_at,
+        priority,
+        user
+      `,
+      )
+      .like('title', `%${searchText}%`)
+      .order('title', { ascending: true });
+
+    if (error || !data) {
+      throw new ResponseError({
+        title: error?.message,
+        description: error?.details,
+      });
+    }
+
+    return data.map((t) => {
+      const createdAtDate = new Date(t.created_at);
+
+      return {
+        ...t,
+        created_at_formatted: createdAtDate.toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: '2-digit',
+        }),
+      };
+    });
   },
 
   async getTickets(

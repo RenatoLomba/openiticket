@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { FaSearch, FaBell } from 'react-icons/fa';
+import { FaBell } from 'react-icons/fa';
 import { Box, BoxProps, Flex, Heading, HStack } from '@chakra-ui/react';
 
 import { Strong } from '../Text/Strong';
@@ -9,6 +9,7 @@ import { HeaderDivider } from './HeaderDivider';
 
 import { useAuth } from '../../hooks/useAuth';
 import { useNotifications } from '../../hooks/useNotifications';
+import { SearchTicketArea } from './SearchTicketArea';
 
 interface HeaderProps extends BoxProps {
   title: string;
@@ -28,7 +29,7 @@ const Header: FC<HeaderProps> = ({ title, ...rest }) => {
 
         <HStack spacing={8}>
           <HStack>
-            <HeaderButton icon={FaSearch} />
+            <SearchTicketArea />
             <HeaderButton
               showBadge={!notificationsVisualized}
               icon={FaBell}

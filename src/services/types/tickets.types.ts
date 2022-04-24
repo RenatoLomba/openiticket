@@ -76,6 +76,18 @@ interface GetTicketResponse {
 
 type UpdateTicketDTO = Partial<CreateTicketDTO> & { id: number };
 
+interface SearchTicketsResponse {
+  id: number;
+  title: string;
+  user: {
+    id: string;
+    full_name: string;
+    avatar_url: string;
+  };
+  priority: PriorityTypes;
+  created_at_formatted: string;
+}
+
 export type {
   Ticket,
   Attachment,
@@ -83,4 +95,5 @@ export type {
   UpdateTicketDTO,
   CreateTicketDTO,
   GetTicketResponse,
+  SearchTicketsResponse,
 };
