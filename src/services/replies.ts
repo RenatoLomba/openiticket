@@ -35,4 +35,15 @@ export const repliesService = {
 
     return data[0];
   },
+
+  subscribeReplies(onNewReply: (r: Reply) => Promise<void>) {
+    const repliesSubscription = supabaseClient
+      .from<Reply>('replies')
+      .on('INSERT', async (payload) => {
+        await onNewReply(payload.new);
+      })
+      .subscribe();
+
+    return repliesSubscription;
+  },
 };

@@ -1,5 +1,6 @@
-import { useDisclosure } from '@chakra-ui/react';
 import { FC, useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { useDisclosure, useToast, Link } from '@chakra-ui/react';
 
 import { INotification } from './types';
 import { NotificationsContext } from '.';
@@ -20,6 +21,19 @@ export const NotificationsProvider: FC = ({ children }) => {
     onClose: closeNotificationsDrawer,
     onOpen: openNotificationsDrawer,
   } = useDisclosure();
+  const notificationsToast = useToast({
+    status: 'warning',
+    position: 'top-right',
+    containerStyle: {
+      width: '400px',
+      maxWidth: '100%',
+      height: '300px',
+      maxHeight: '100%',
+    },
+    isClosable: true,
+    variant: 'top-accent',
+  });
+  const router = useRouter();
 
   const getUserNotifications = async () => {
     const { getAdminNotifications, getUserNotifications } =
@@ -39,7 +53,7 @@ export const NotificationsProvider: FC = ({ children }) => {
   };
 
   useEffect(() => {
-    if (user && user.roles && notifications.length > 0) {
+    if (user && user.roles && notifications.length > 0 && router) {
       const notificationsSubscription =
         notificationsService.subscribeNotifications((n) => {
           if (
@@ -54,6 +68,23 @@ export const NotificationsProvider: FC = ({ children }) => {
 
             setNotifications(newNotifications);
             setNotificationsVisualized(false);
+
+            notificationsToast({
+              title: (
+                <>
+                  {n.user.full_name} disse em{' '}
+                  <Link
+                    onClick={() => {
+                      router.push(`/tickets/${n.ticket.id}`);
+                      notificationsToast.closeAll();
+                    }}
+                  >
+                    {`"${n.ticket.title}": `}
+                  </Link>
+                </>
+              ),
+              description: n.message,
+            });
           }
         });
 
@@ -61,7 +92,7 @@ export const NotificationsProvider: FC = ({ children }) => {
         notificationsSubscription.unsubscribe();
       };
     }
-  }, [user, notifications]);
+  }, [user, notifications, router]);
 
   useEffect(() => {
     if (notificationsDrawerIsOpen) {

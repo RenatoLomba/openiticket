@@ -3,8 +3,6 @@ import { supabaseClient } from '../libs/supabase';
 import { Notification } from './types/notifications.types';
 import { Ticket } from './types/tickets.types';
 
-const notificationsMaxRange = 5;
-
 export const notificationsService = {
   async getUserNotifications(user_id: string) {
     const { data, error } = await supabaseClient
@@ -12,8 +10,7 @@ export const notificationsService = {
       .select('*, tickets!inner(*)')
       .eq('tickets.user_id' as keyof Notification, user_id)
       .not('user_id', 'eq', user_id)
-      .order('created_at', { ascending: false })
-      .range(0, notificationsMaxRange);
+      .order('created_at', { ascending: false });
 
     if (!data || error) {
       throw new ResponseError({
@@ -31,8 +28,7 @@ export const notificationsService = {
       .from<Notification>('notifications')
       .select('*')
       .not('user_id', 'eq', admin_id)
-      .order('created_at', { ascending: false })
-      .range(0, notificationsMaxRange);
+      .order('created_at', { ascending: false });
 
     if (!data || error) {
       throw new ResponseError({

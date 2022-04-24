@@ -17,6 +17,8 @@ import { useUpdateTicket } from '../../helpers/mutations/useUpdateTicket';
 import { useDeleteImages } from '../../helpers/mutations/useDeleteImages';
 
 import { Attachment } from '../../services/types/tickets.types';
+import { repliesService } from '../../services/replies';
+import { queryClient } from '../../libs/react-query';
 
 const UpdateTicket: NextPage = () => {
   const router = useRouter();
@@ -31,6 +33,16 @@ const UpdateTicket: NextPage = () => {
   useEffect(() => {
     if (ticket) {
       setAttachments(ticket.attachments);
+
+      const repliesSubscription = repliesService.subscribeReplies(async (r) => {
+        if (r.ticket_id === ticket.id) {
+          await queryClient.invalidateQueries(['ticket', ticket.id]);
+        }
+      });
+
+      return () => {
+        repliesSubscription.unsubscribe();
+      };
     }
   }, [ticket]);
 
